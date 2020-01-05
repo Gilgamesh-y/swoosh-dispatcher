@@ -4,7 +4,7 @@ namespace Src\Dispatcher\Provider;
 
 use Swoole\WebSocket\Server;
 use Src\Core\AbstractProvider;
-use Src\Event\WebSocketEvent;
+use Src\ServerEvent\WebSocketEvent;
 
 class WebSocketServiceProvider extends AbstractProvider
 {
