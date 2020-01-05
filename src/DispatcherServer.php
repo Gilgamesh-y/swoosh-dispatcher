@@ -147,8 +147,9 @@ class DispatcherServer
         $response = call_user_func([new $route['controller'], $route['method']], $proto);
         $status_len = strlen($response['status']);
         $code_len = strlen($response['code']);
-        $str = pack("A{$status_len}A{$code_len}A*", $response['status'], $response['code'], json_encode($response['data'], JSON_UNESCAPED_UNICODE));
+        $str = pack("A{$status_len}L{$code_len}A*", $response['status'], $response['code'], json_encode($response['data'], JSON_UNESCAPED_UNICODE));
         $binary_str = str_to_bin($status_len.'-'.$code_len.'-'.$str);
+
         $server->send($fd, $binary_str."\r\n");
         $server->close($fd);
     }
