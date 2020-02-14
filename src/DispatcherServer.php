@@ -4,6 +4,7 @@ namespace Src\Dispatcher;
 
 use App\Kernel;
 use Src\Core\App;
+use Src\Core\Contexts\DBContext;
 use Swoole\Server;
 use Swoole\WebSocket\Server as WsServer;
 use Swoole\WebSocket\Frame;
@@ -103,6 +104,7 @@ class DispatcherServer
     {
         RequestContext::clearCidContext();
         RedisContext::clearCidContext();
+        DBContext::clearCidContext();
     }
     
     public function wsHandle(WsServer $server, Frame $frame)
