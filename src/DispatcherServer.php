@@ -4,7 +4,7 @@ namespace Src\Dispatcher;
 
 use App\Kernel;
 use Src\Core\App;
-use Src\Core\Contexts\DBContext;
+use Src\Database\DBContext;
 use Swoole\Server;
 use Swoole\WebSocket\Server as WsServer;
 use Swoole\WebSocket\Frame;
@@ -13,8 +13,8 @@ use Src\Dispatcher\RequestServer;
 use Src\Dispatcher\ResponseServer;
 use Src\Helper\AnnotationResourceHelper;
 use Src\RPC\Packet\Encoder;
-use Src\Core\Contexts\RedisContext;
-use Src\Core\Contexts\RequestContext;
+use Src\Redis\RedisContext;
+use Src\Dispatcher\RequestContext;
 
 class DispatcherServer
 {
@@ -63,7 +63,7 @@ class DispatcherServer
 
         $data = $pipeline($request);
 
-        $response = RequestContext::getResponse();
+        $response = RequestContext::get(RequestContext::RESPONSE_KEY);
         
         $response->end($data);
 
@@ -96,8 +96,8 @@ class DispatcherServer
 
     protected function beforeDispatch(RequestServer $request, ResponseServer $response)
     {
-        RequestContext::setRequest($request);
-        RequestContext::setResponse($response);
+        RequestContext::set(RequestContext::REQUEST_KEY, $request);
+        RequestContext::set(RequestContext::RESPONSE_KEY, $response);
     }
 
     protected function afterDispatch()
