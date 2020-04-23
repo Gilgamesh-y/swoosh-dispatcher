@@ -36,7 +36,7 @@ class DispatcherServer
     public function httpHandle(RequestServer $request, ResponseServer $response)
     {
         $this->beforeDispatch($request, $response);
-        $replace_uri = preg_replace('/\d+/i', '{}', $request->request->server['request_uri']);
+        $replace_uri = preg_replace('/\/\d+/i', '/{}', $request->request->server['request_uri']);
         $type = strtolower($request->request->server['request_method']);
         switch (isset($this->routes[$type . '@' . $replace_uri])) {
             case true:

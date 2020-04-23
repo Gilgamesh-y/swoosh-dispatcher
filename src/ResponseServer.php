@@ -16,6 +16,11 @@ class ResponseServer
 
     public function end($html = null)
     {
+        if (is_string($html)) {
+            $this->response->end($html);
+            
+            return;
+        }
         $this->header('Content-Type', 'application/json; charset=UTF-8');
 
         if (is_array($html['data']) && current($html['data']) instanceof Model) {
