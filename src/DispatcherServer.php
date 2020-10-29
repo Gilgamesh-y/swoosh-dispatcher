@@ -38,11 +38,10 @@ class DispatcherServer
         $this->beforeDispatch($request, $response);
         $replace_uri = preg_replace('/\/\d+/i', '/{}', $request->request->server['request_uri']);
         $type = strtolower($request->request->server['request_method']);
-        switch (isset($this->routes[$type . '@' . $replace_uri])) {
-            case true:
-                $this->httpDispatch($request, $response, $this->routes[$type . '@' . $replace_uri]);
-            case false:
-                $this->httpDispatch($request, $response, '', error(ErrorHelper::ROUTE_ERROR_CODE, ErrorHelper::ROUTE_ERROR_MSG));
+        if (isset($this->routes[$type . '@' . $replace_uri])) {
+            $this->httpDispatch($request, $response, $this->routes[$type . '@' . $replace_uri]);
+        } else {
+            $this->httpDispatch($request, $response, '', error(ErrorHelper::ROUTE_ERROR_CODE, ErrorHelper::ROUTE_ERROR_MSG));
         }
     }
 
