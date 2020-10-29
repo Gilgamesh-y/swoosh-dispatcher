@@ -40,28 +40,32 @@ class DispatcherServer
         $type = strtolower($request->request->server['request_method']);
         switch (isset($this->routes[$type . '@' . $replace_uri])) {
             case true:
-                return $this->httpDispatch($request, $response, $this->routes[$type . '@' . $replace_uri]);
+                $this->httpDispatch($request, $response, $this->routes[$type . '@' . $replace_uri]);
             case false:
-                return error(ErrorHelper::ROUTE_ERROR_CODE, ErrorHelper::ROUTE_ERROR_MSG);
+                $this->httpDispatch($request, $response, '', error(ErrorHelper::ROUTE_ERROR_CODE, ErrorHelper::ROUTE_ERROR_MSG));
         }
     }
 
-    public function httpDispatch(RequestServer $request, ResponseServer $response, $route)
+    public function httpDispatch(RequestServer $request, ResponseServer $response, $route, $error = null)
     {
-        preg_match('/\d+/i', $request->request->server['request_uri'], $params);
-        $kernel = new Kernel($this->app);
-        $middleware = $kernel->getMiddleware();
-        $middleware = array_filter($middleware + [$kernel->getRouteMiddleware($route['middleware'])]);
-        $destination = $this->getDestination($request, $response, $route['controller'], $route['method'], end($params));
-
-        // Execution middleware
-        $pipeline = array_reduce(
-            array_reverse($middleware),
-            $this->getInitialSlice(),
-            $this->prepareDestination($destination)
-        );
-
-        $data = $pipeline($request);
+        if (is_null($error)) {
+            preg_match('/\d+/i', $request->request->server['request_uri'], $params);
+            $kernel = new Kernel($this->app);
+            $middleware = $kernel->getMiddleware();
+            $middleware = array_filter($middleware + [$kernel->getRouteMiddleware($route['middleware'])]);
+            $destination = $this->getDestination($request, $response, $route['controller'], $route['method'], end($params));
+    
+            // Execution middleware
+            $pipeline = array_reduce(
+                array_reverse($middleware),
+                $this->getInitialSlice(),
+                $this->prepareDestination($destination)
+            );
+    
+            $data = $pipeline($request);
+        } else {
+            $data = $error;
+        }
 
         $response = RequestContext::get(RequestContext::RESPONSE_KEY);
         
