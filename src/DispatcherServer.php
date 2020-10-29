@@ -48,30 +48,36 @@ class DispatcherServer
 
     public function httpDispatch(RequestServer $request, ResponseServer $response, $route, $error = null)
     {
-        if (is_null($error)) {
-            preg_match('/\d+/i', $request->request->server['request_uri'], $params);
-            $kernel = new Kernel($this->app);
-            $middleware = $kernel->getMiddleware();
-            $middleware = array_filter($middleware + [$kernel->getRouteMiddleware($route['middleware'])]);
-            $destination = $this->getDestination($request, $response, $route['controller'], $route['method'], end($params));
-    
-            // Execution middleware
-            $pipeline = array_reduce(
-                array_reverse($middleware),
-                $this->getInitialSlice(),
-                $this->prepareDestination($destination)
-            );
-    
-            $data = $pipeline($request);
-        } else {
-            $data = $error;
-        }
-
-        $response = RequestContext::get(RequestContext::RESPONSE_KEY);
+        $data = [];
+        try {
+            if (is_null($error)) {
+                preg_match('/\d+/i', $request->request->server['request_uri'], $params);
+                $kernel = new Kernel($this->app);
+                $middleware = $kernel->getMiddleware();
+                $middleware = array_filter($middleware + [$kernel->getRouteMiddleware($route['middleware'])]);
+                $destination = $this->getDestination($request, $response, $route['controller'], $route['method'], end($params));
         
-        $response->end($data);
-
-        $this->afterDispatch();
+                // Execution middleware
+                $pipeline = array_reduce(
+                    array_reverse($middleware),
+                    $this->getInitialSlice(),
+                    $this->prepareDestination($destination)
+                );
+                $data = $pipeline($request);
+            } else {
+                $data = $error;
+            }
+        } catch (\Exception $e) {
+            $data = [
+                'status' => 'error',
+                'code' => '500',
+                'data' => $e->getMessage()
+            ];
+        } finally {
+            $response = RequestContext::get(RequestContext::RESPONSE_KEY);
+            $response->end($data);
+            $this->afterDispatch();
+        }
     }
 
     // Get Controller Closure
